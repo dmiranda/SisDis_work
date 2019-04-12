@@ -48,8 +48,16 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
     }
 	
 	//Método encargado de eliminar la partida, pues un jugador decide salir de ella
-	public void salida() throws RemoteException {
-		jugadores[0] = null;
+	public void salida(String user) {
+		try{
+			if(ID_players[0].equals(user))
+				jugadores[1].fin_partida(false);
+			else
+				jugadores[0].fin_partida(false);
+		}
+		catch(Exception ex){
+			System.out.println("No se puede conectar con el jugador");
+		}
     }
 	
 	//Método que gestiona los tiros de un jugador:
@@ -80,7 +88,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 					//ESCRIBIR HUNDIDO
 					result = new String("Hundido");
 				
-				log_partida.println("Jugador " + (jugador_turno + 1) + " lanza un disparo a casilla " + casilla + " -> " + result);
+				log_partida.println("> " + user + " lanza un disparo a casilla " + casilla + " -> " + result);
 				log_partida.flush();
 				
 				if(resultado == 4)
@@ -99,7 +107,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 			}
 			catch(Exception re){
 				System.out.println(re.toString());
-				return 10;
+				throw new RemoteException();
 			}
 		}
 		
@@ -129,7 +137,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 			throw new RemoteException ("Jugador no valido");
 		
 		//Imprimimos en el log, la posicion de los barcos
-		log_partida.println("Disposicion de los barcos del jugador " + jug);
+		log_partida.println("Disposicion de los barcos del jugador " + user);
 		log_partida.println("\tSalvavidas " + b1[0]);
 		log_partida.println("\tBuque " + b2[0] + "," + b2[1]);
 		log_partida.println("\tAcorazado " + b3[0] + "," + b3[1] + "," + b3[2]);
@@ -156,7 +164,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		String ganador = "NONE";
 		String perdedor = "NONE";
 		
-		jugadores[id].fin_partida();
+		jugadores[id].fin_partida(true);
 		
 		if(id == 0) ganador = ID_players[1];
 		else ganador = ID_players[0];

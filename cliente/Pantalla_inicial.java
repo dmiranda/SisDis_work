@@ -204,9 +204,8 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 				JOptionPane.showConfirmDialog(null, "No se puede mostrar la tabla en este momento");
 		}
 	}
-    /**
-     * @param args the command line arguments
-     */
+
+	
     public static void main(String args[]) {
 		
 		if (args.length!=2) {
@@ -230,9 +229,7 @@ public class Pantalla_inicial extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Pantalla_inicial.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
 
-        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
 				
