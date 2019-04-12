@@ -19,19 +19,21 @@ class ServicioJuegoImpl extends UnicastRemoteObject implements ServicioJuego {
     public void alta(hundir_flota_interface c) throws RemoteException {
 		if(jugador_espera==null){
 			jugador_espera = c;
+			System.out.println("Jugador en espera");
 		}
 		else{
 			try{
+				System.out.println("Comenzamos partida");
 				PartidaImpl partida = new PartidaImpl(jugador_espera, c, numPartida);	
 				jugador_espera.asigna_partida(partida);
 				c.asigna_partida(partida);
 				numPartida++;
 			}
 			catch(RemoteException re){
-				System.out.println("No se ha podido realizar conexion");
+				System.out.println(re.toString());
 			}
 			catch(Exception excp){
-				System.out.println("Problemas en el servidor");
+				System.out.println(excp.toString());
 			}
 			finally{
 				jugador_espera=null;

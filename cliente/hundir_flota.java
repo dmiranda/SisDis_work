@@ -141,7 +141,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		ventana.add(salir);
 		salir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                Instrucciones(evt);
+                CerrarPartida(evt);
             }
         });
 		
@@ -216,7 +216,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
             public void windowClosing(WindowEvent e){
                 ventana_espera.dispose();
 				try{
-					if(partida != null)	partida.salida();
+					if(partida != null)	partida.salida(nombre_user);
 				}
 				catch(Exception ex){
 					System.out.println(ex.toString());
@@ -364,10 +364,11 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	//Método que indica el fin de la partida por parte del oponente
 	/*	- El objeto partida, llama a este método, indicando al jugador que ha finalizado la partida, y por tanto, ha ganado
 	*/
-	public void fin_partida(){
+	public void fin_partida(boolean fin){
+		
 		if(ventana_espera != null) ventana_espera.dispose();
 		ventana_espera = new Frame("FIN partida");
-		ventana_espera.setSize(200,200);
+		ventana_espera.setSize(150,300);
 		ventana_espera.setLocationRelativeTo(null);
 		
 		ventana_espera.addWindowListener(new WindowListener(){
@@ -380,7 +381,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
             public void windowClosing(WindowEvent e){
                 ventana_espera.dispose();
 				try{
-					if(partida != null)	partida.salida();
+					if(partida != null)	partida.salida(nombre_user);
 				}
 				catch(Exception ex){
 					System.out.println(ex.toString());
@@ -389,7 +390,13 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
             }
         });
 
-		JLabel mensajito = new JLabel("¡¡LO SIENTO, HAS PERDIDO!!");
+		JLabel mensajito;
+		if(fin)
+			mensajito = new JLabel("¡¡LO SIENTO, HAS PERDIDO!!");
+		
+		else
+			mensajito = new JLabel("El oponente ha salido de la partida");
+		
 		mensajito.setBounds(10,20,20,20);
 		ventana_espera.add(mensajito);
 		
@@ -430,7 +437,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 						if(partida.getTurno(nombre_user)){
 							mi_partida[j].removeActionListener(pmp);
 							int tocado = partida.tiro(nombre_user,j);
-							if(tocado == 1)
+							if((tocado == 1) || (tocado == 4))
 								mi_partida[j].setIcon(ic_tocado);
 							
 							else if(tocado == 2){
@@ -738,7 +745,11 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	private void CerrarPartida(java.awt.event.ActionEvent evt) {
 
 		if(ventana_espera != null) ventana_espera.dispose();
-
+		try{
+			partida.salida(nombre_user);
+		}
+		catch (Exception re){}
+		
 		ventana.dispose();
 	}
 	
@@ -794,12 +805,11 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 				ventana.dispose();
 			};
 			
-			//Mapa_enemigo();
 		}			
 		else
 			JOptionPane.showMessageDialog(ventana,"¡TIENES QUE COLOCAR TODOS LOS BARCOS PARA COMENZAR!");
 				
-		
+		comenzar.setVisible(false);
 		
 	}
 	
