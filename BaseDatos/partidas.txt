@@ -1,0 +1,3 @@
+David	10 	2
+Arturo	4 	1
+Pepe	15 	0
