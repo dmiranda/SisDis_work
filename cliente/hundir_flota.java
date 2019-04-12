@@ -745,8 +745,11 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	private void CerrarPartida(java.awt.event.ActionEvent evt) {
 
 		if(ventana_espera != null) ventana_espera.dispose();
-
-		partida.salida(nombre_user);
+		try{
+			partida.salida(nombre_user);
+		}
+		catch (Exception re){}
+		
 		ventana.dispose();
 	}
 	

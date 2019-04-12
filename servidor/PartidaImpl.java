@@ -48,7 +48,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
     }
 	
 	//Método encargado de eliminar la partida, pues un jugador decide salir de ella
-	public void salida(String user) {
+	public void salida(String user) throws RemoteException{
 		try{
 			if(ID_players[0].equals(user))
 				jugadores[1].fin_partida(false);

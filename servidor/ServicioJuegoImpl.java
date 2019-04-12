@@ -30,10 +30,10 @@ class ServicioJuegoImpl extends UnicastRemoteObject implements ServicioJuego {
 				numPartida++;
 			}
 			catch(RemoteException re){
-				System.out.println("No se ha podido realizar conexion");
+				System.out.println(re.toString());
 			}
 			catch(Exception excp){
-				System.out.println("Problemas en el servidor");
+				System.out.println(excp.toString());
 			}
 			finally{
 				jugador_espera=null;
