@@ -368,7 +368,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		
 		if(ventana_espera != null) ventana_espera.dispose();
 		ventana_espera = new Frame("FIN partida");
-		ventana_espera.setSize(200,200);
+		ventana_espera.setSize(150,300);
 		ventana_espera.setLocationRelativeTo(null);
 		
 		ventana_espera.addWindowListener(new WindowListener(){
@@ -437,7 +437,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 						if(partida.getTurno(nombre_user)){
 							mi_partida[j].removeActionListener(pmp);
 							int tocado = partida.tiro(nombre_user,j);
-							if(tocado == 1)
+							if((tocado == 1) || (tocado == 4))
 								mi_partida[j].setIcon(ic_tocado);
 							
 							else if(tocado == 2){
