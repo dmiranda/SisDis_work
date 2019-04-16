@@ -11,19 +11,33 @@ public class palmares extends javax.swing.JFrame {
 	
 	ServicioJuego server;
 	
+	//Constructor
+	//	- Recibe la referencia al servidor
     public palmares(ServicioJuego srv) throws RemoteException {
+		
+		//Almacena la referencia al servidor
         server = srv;
-		initComponents();
+		
+		//Dibuja la tabla y componentes de la ventana
+		initComponents().addWindowListener(new WindowListener(){
+            public void windowOpened(WindowEvent e){}
+            public void windowActivated(WindowEvent e){}
+            public void windowDeactivated(WindowEvent e){}
+            public void windowIconified(WindowEvent e){}
+            public void windowDeiconified(WindowEvent e){}
+            public void windowClosed(WindowEvent e){}
+            public void windowClosing(WindowEvent e){}
+		});;
+		
+		//Obtiene una referencia para rellenar la tabla
 		DefaultTableModel modTabla = (DefaultTableModel) tabla.getModel();
 	
+		
 		try{
+			//Obtiene el string con toda la información de la base de datos
 			String [] lista_jugadores = srv.getLista();
 			
-			/*while(lista_jugadores.next()){
-				String [] row = {lista_jugadores.getString(1), lista_jugadores.getString(2), lista_jugadores.getString(3)};
-				modTabla.addRow(row);
-			}*/
-			
+			//Recorre el string, rellenando la tabla
 			for(int i = 0; i<(lista_jugadores.length/3);i++){
 				String [] row = {lista_jugadores[(i*3)], lista_jugadores[(i*3)+1], lista_jugadores[(i*3)+2]};
 				modTabla.addRow(row);
@@ -35,7 +49,9 @@ public class palmares extends javax.swing.JFrame {
 		}
 		
     }
-                          
+                         
+	//Método que construye la interfaz gráfica
+	//		(Construido con NetBeans)
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -99,6 +115,8 @@ public class palmares extends javax.swing.JFrame {
         pack();
     }                       
 
+	//Método que gestiona la pulsación del botón "Salir"
+	//	Cierra la ventana creada
     private void salirActionPerformed(java.awt.event.ActionEvent evt) {                                         
         this.dispose();
     }                                        
@@ -121,14 +139,6 @@ public class palmares extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(palmares.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        /*java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new palmares().setVisible(true);
-            }
-        });*/
     }
 
     // Variables declaration - do not modify                     

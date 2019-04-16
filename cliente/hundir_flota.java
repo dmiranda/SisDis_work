@@ -7,14 +7,14 @@ import java.rmi.server.*;
 
 public class hundir_flota extends UnicastRemoteObject implements hundir_flota_interface {
 		
-	//CONTRINCANTE
+	//Variables necesarias para la comunicacion con el objeto partida
 	Partida partida = null;
 	String nombre_user = "NONE";
 	private boolean contricante_listo = false;
 	boolean espera = false;
 	
 
-	//Variables globales
+	//Variables para la creacion del tablero en formato grafico
 	private int N_botones=100;
 	private int nColumnasMapa=10;
 	private int MiPartida = 60;
@@ -28,7 +28,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	private JButton c1,c2,c3,c4;
 	private JButton comenzar, salir, instrucciones;
 	private Frame ventana,ventana_espera;
-	private int barco_seleccionado=0;
+	private int barco_seleccionado=1;
 	
 	//Clases que gestionan los botones
 	PulsaMapaPartida pmp = new PulsaMapaPartida();
@@ -40,6 +40,8 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	private int buque []= {200,200};
 	private int acorazado []= {200,200,200};
 	private int portaviones []= {200,200,200,200,200};
+	
+	//Situacion de los barcos 
 	private boolean barcos_colocados[] = {false,false,false,false};
 	private boolean barcos_destruidos[] = {false,false,false,false};
 	
@@ -53,8 +55,10 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	//Constructor de toda la interfaz grafica
 	public void showButton(){
 
-		
-		//Construimos el mapa de la cpu a la izquierda de la pantalla
+		/*************************************************
+			Construimos los mapas
+		*************************************************/
+		//Construimos el mapa a la izquierda de la pantalla
 		int x=MiPartida; 
 		int y=80;
 		int j=0;
@@ -64,9 +68,8 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		titulo1.setBounds(MiPartida,20,100,50);
 		ventana.add(titulo1);
 		
-		//Creamos la clase que gestionará el mapa
 		
-		//Creamos el mapa
+		//Creamos el mapa de la izquierda, que nos servirá para encontrar los barcos de nuestro oponente
 		for(int i=0;i<=N_botones-1;i++,x+=50,j++){
 			mi_partida[i]=new JButton();
 			if(j==nColumnasMapa)
@@ -75,7 +78,6 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 			mi_partida[i].setBounds(x,y,50,50);
 			mi_partida[i].setIcon(ic_int);
 			ventana.add(mi_partida[i]);
-			//mi_partida[i].addActionListener(pmp);
 		}
 		
 		//Pasamos a construir el mapa a la derecha de la pantalla
@@ -88,21 +90,20 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		titulo2.setBounds(CPUPartida+((nColumnasMapa*50)-60),20,100,50);
 		ventana.add(titulo2);
 		
-		//Creamos la clase que lo gestionará
 		
-		//Creamos el mapa
+		//Creamos el mapa de la derecha, que servirá para colocar nuestra flota
 		for(int i=0;i<=N_botones-1;i++,x+=50,j++){
 			mi_mapa[i]=new JButton();
 			if(j==nColumnasMapa)
 				{j=0; y+=50; x=CPUPartida;}
 			
 			mi_mapa[i].setBounds(x,y,50,50);
-			//mi_mapa[i].setIcon(ic1);
 			ventana.add(mi_mapa[i]);
 			mi_mapa[i].addActionListener(pmc);
 		}
 		
 		//Creamos la lista de los barcos que debemos colocar en el mapa
+		// Esta lista se irá clickando para seleccionar el barco que colocamos en cada momento
 		c1=new JButton("Bote salvavidas (1 casilla)");
 		c2=new JButton("Buque (2 casillas)");
 		c3=new JButton("Acorazado (3 casillas)");
@@ -123,7 +124,9 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		ventana.add(c3);
 		ventana.add(c4);
 		
-		//Creamos los botones en la parte baja de la pantalla
+		/*******************************
+		Creamos los botones en la parte baja de la pantalla
+		*******************************/
 		
 		//COMENZAR PARTIDA (habrá que pulsar este botón para que nuestros barcos queden fijados en el mapa e iniciar la partida contra la CPU)
 		comenzar=new JButton("Comenzar partida");
@@ -158,8 +161,9 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 
 	}
 	
-	//Permite clickar sobre el mapa del contrincante para iniciar la partida
-	/*	- Se encarga de activar los botones del mapa donde tendremos que clickar para lanzar misiles al contrincante
+	
+	/*	Permite clickar sobre el mapa del contrincante para iniciar la partida
+			- Se encarga de activar los botones del mapa donde tendremos que clickar para lanzar misiles al contrincante
 	*/
 	public void Mapa_enemigo(){
 
@@ -169,6 +173,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		}
 		
 		try{
+			//Consultamos con el objeto partida, si el turno pertenece a este jugador
 			if(!partida.getTurno(nombre_user)){			
 				muestra_ventana_turno();
 						
@@ -191,6 +196,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	}
 	
 	//Método que elimina la pantalla de espera de la interfaz, y permite al jugador realizar un tiro
+	//	-	Este método es llamado por el objeto partida que gestiona la propia partida, para permitir al jugador realizar un tiro
 	public void Turno() throws RemoteException {
 		ventana_espera.setVisible(false);
 		ventana_espera.dispose();
@@ -198,14 +204,20 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	}
 	
 	//Crea la ventana y llama al constructor de la interfaz grafica
+	//	Recibe como parámetro, el nombre del usuario que solicita iniciar la partida
 	public hundir_flota(String user) throws RemoteException{
 		
+		//Asignamos a este objeto el nombre del usuario que solicita partida
 		nombre_user = user;
 		
+		//Antes de crear el tablero de la partida, se crea una ventana que indica que se está a la espera del jugador oponente
 		ventana_espera = new Frame("Espere....");
 		ventana_espera.setSize(300,100);
 		ventana_espera.setLocationRelativeTo(null);
 		
+		//Configuramos el procedimiento al cerrar la ventana de espera
+		//	-	Indicamos al objeto partida para que elmine la referencia a este jugador
+		//	-	Y si, se ha creado el tablero de la partida, se cerrará
 		ventana_espera.addWindowListener(new WindowListener(){
             public void windowOpened(WindowEvent e){}
             public void windowActivated(WindowEvent e){}
@@ -247,6 +259,10 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		
 		ventana = new Frame("Hundir la flota");
 		
+		/*Configuramos el procedimiento a seguir al cerrar la ventana
+			- Avisamos al objeto partida
+			- Si hay alguna ventana de espera activada, se cerrará también
+		*/	 
 		ventana.addWindowListener(new WindowListener(){
             public void windowOpened(WindowEvent e){}
             public void windowActivated(WindowEvent e){}
@@ -256,11 +272,22 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
             public void windowClosed(WindowEvent e){}
             public void windowClosing(WindowEvent e){
                 ventana.dispose();
+				
+				try{
+					if(partida != null)	partida.salida(nombre_user);
+				}
+				catch(Exception ex){
+					System.out.println(ex.toString());
+				}
+				
+				if(ventana_espera != null) ventana_espera.dispose();
+				
             }
         });
 		
 		ventana.setLayout(null);
 		
+		// Dibujamos el tablero de la partida, llamando al método
 		showButton();
 		
 		ventana.setSize(1500,1400);
@@ -271,7 +298,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	/*
 		- Este método es llamado desde el objeto partida
 		- Recibe la casilla a la se ha lanzado el tiro
-		- Comprueba si corresponde con alguno de los barcos
+		- Comprueba si corresponde con alguno de los barcos, recorriendo todos los barcos
 		- Devuelve:
 			0 -> Agua
 			1 -> Tocado
@@ -283,65 +310,86 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	public int tiro (int casilla) throws RemoteException{
 		int tocado = 0;
 		
-		for(int i=0;i<1;i++)
+		if(barcos_destruidos[0]==false)
 		{
-			if(salvavidas[i]==casilla)
+			for(int i=0;i<1;i++)
 			{
-				tocado = 2;
-				salvavidas[i]=300;
-				barcos_destruidos[0]=true;
-			}
-		}
-		
-		for(int i=0;i<2;i++)
-		{
-			if(buque[i]==casilla)
-			{
-				tocado = 1;
-				buque[i]=300;
-				
-				if((buque[0]==300) && (buque[1]==300)){
-					barcos_destruidos[1]=true;
-					tocado = 2;
-				}
-			}
-		}
-			
-		for(int i=0;i<3;i++)
-		{
-			if(acorazado[i]==casilla)
-			{
-				tocado = 1;
-				acorazado[i]=300;
-				
-				if((acorazado[0]==300) && (acorazado[1]==300) && (acorazado[2]==300)){
-					tocado = 2;
-					barcos_destruidos[2]=true;
-				}
-			}
-		}
-			
-		for(int i=0;i<5;i++)
-		{
-			if(portaviones[i]==casilla)
-			{
-				tocado = 1;
-				portaviones[i]=300;
-				
-				if((portaviones[0]==300) && (portaviones[1]==300) && (portaviones[2]==300) && (portaviones[3]==300) && (portaviones[4]==300)){
-					tocado = 2;
-					barcos_destruidos[3]=true;
+				if(salvavidas[i]==casilla)
+				{
+					tocado = 2;					//Valor (2) debido a que ya se ha hundido todo el barco
+					salvavidas[i]=300;			//Cambiamos el valor en el array que guarda la posicion de este barco
+					barcos_destruidos[0]=true;	//Indicamos que este barco ya ha sido hundido
 				}
 			}
 		}
 		
+		//Antes de recorrer el siguiente barco, comprobamos que no se ha encontrado ya en los anteriores
+		//	O que este barco aún no se ha hundido completamente
+		if((tocado == 0) && (barcos_destruidos[1]==false))
+		{
+			for(int i=0;i<2;i++)
+			{
+				if(buque[i]==casilla)
+				{
+					tocado = 1;
+					buque[i]=300;
+					
+					if((buque[0]==300) && (buque[1]==300)){
+						barcos_destruidos[1]=true;
+						tocado = 2;
+					}
+				}
+			}
+		}
+		
+		//Antes de recorrer el siguiente barco, comprobamos que no se ha encontrado ya en los anteriores	
+		//	O que este barco aún no se ha hundido completamente		
+		if ((tocado == 0) && (barcos_destruidos[2]==false))
+		{
+			for(int i=0;i<3;i++)
+			{
+				if(acorazado[i]==casilla)
+				{
+					tocado = 1;
+					acorazado[i]=300;
+					
+					if((acorazado[0]==300) && (acorazado[1]==300) && (acorazado[2]==300)){
+						tocado = 2;
+						barcos_destruidos[2]=true;
+					}
+				}
+			}
+		}
+			
+		//Antes de recorrer el siguiente barco, comprobamos que no se ha encontrado ya en los anteriores
+		//	O que este barco aún no se ha hundido completamente
+		if((tocado == 0) && (barcos_destruidos[3]==false))
+		{
+			for(int i=0;i<5;i++)
+			{
+				if(portaviones[i]==casilla)
+				{
+					tocado = 1;
+					portaviones[i]=300;
+					
+					if((portaviones[0]==300) && (portaviones[1]==300) && (portaviones[2]==300) && (portaviones[3]==300) && (portaviones[4]==300)){
+						tocado = 2;
+						barcos_destruidos[3]=true;
+					}
+				}
+			}
+		}
+		
+		//Cambiamos el icono en el tablero, dependiendo del resultado de la búsqueda
 		if(tocado != 0)
 			mi_mapa[casilla].setIcon(ic_tocado);
 		else
 			mi_mapa[casilla].setIcon(ic_agua);
 		
+		//Comprobamos si aún tenemos barcos sin localizar en nuestro tablero
+		// En caso contrario, devolvemos el valor consecuente (4)
 		if(barcos_destruidos[0] && barcos_destruidos[1] && barcos_destruidos[2] && barcos_destruidos[3]){
-
+			
 			ventana_espera.setVisible(false);
 			ventana_espera.dispose();				
 			tocado = 4;			
@@ -350,25 +398,35 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		return tocado;
 	}
 	
-	//Método que indica al jugador que su contrincante ya está listo
+	/*Método que indica al jugador que su contrincante ya está listo
+		- Este metodo es llamado por el objeto partida
+		- Cierra la ventana de espera
+		- Activa el mapa de la derecha
+	*/
 	public void listo() throws RemoteException{
 		contricante_listo = true;
 		//System.out.println("Contrincante listo");
 		if(espera){
 			ventana_espera.setVisible(false);
 			ventana_espera.dispose();
-			Mapa_enemigo();
+			
+			Mapa_enemigo();		//Activa el mapa de la derecha para que el jugador pueda clickar en él
 		}
 	}
 	
 	//Método que indica el fin de la partida por parte del oponente
-	/*	- El objeto partida, llama a este método, indicando al jugador que ha finalizado la partida, y por tanto, ha ganado
+	/*	- El objeto partida, llama a este método, indicando como  paramétro un boolean que indica:
+				false -> La partida no ha finalizado, pero se ha perdido la conexion con el otro jugador
+				true -> La partida ha finalizado, y por tanto, este jugador ha perdido
 	*/
 	public void fin_partida(boolean fin){
 		
-		if(ventana_espera != null) ventana_espera.dispose();
+		
+		if(ventana_espera != null) ventana_espera.dispose();		//Comprobamos que no haya ventana de espera abierta en la pantalla del jugador
+		
+		//Configuramos una ventana de espera que indique al jugador que ha finalizado la partida
 		ventana_espera = new Frame("FIN partida");
-		ventana_espera.setSize(150,300);
+		ventana_espera.setSize(300,150);
 		ventana_espera.setLocationRelativeTo(null);
 		
 		ventana_espera.addWindowListener(new WindowListener(){
@@ -379,17 +437,23 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
             public void windowDeiconified(WindowEvent e){}
             public void windowClosed(WindowEvent e){}
             public void windowClosing(WindowEvent e){
+				
+				//Configuramos la ventana para que al cerrarlo se cierra el tablero de la partida
                 ventana_espera.dispose();
 				try{
-					if(partida != null)	partida.salida(nombre_user);
+					if(partida != null)	partida.salida(nombre_user);	//Antes de salir, avisamos al objeto partida para que borre la referencia de este objeto
 				}
 				catch(Exception ex){
 					System.out.println(ex.toString());
 				}
-				if(ventana != null) ventana.dispose();
+				
+				if(ventana != null) ventana.dispose();		//Cerramos el tablero de la partida
             }
         });
 
+		//Pasamos a configurar el mensaje que se muestra en función del parámetro de entrada
+		//	true -> fin de la partida
+		//	false -> partida acabada inesperadamente
 		JLabel mensajito;
 		if(fin)
 			mensajito = new JLabel("¡¡LO SIENTO, HAS PERDIDO!!");
@@ -397,12 +461,13 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		else
 			mensajito = new JLabel("El oponente ha salido de la partida");
 		
+		//Incluimos el mensaje en la ventana de espera
 		mensajito.setBounds(10,20,20,20);
 		ventana_espera.add(mensajito);
 		
+		//Mostramos la ventana
 		ventana_espera.setVisible(true);
-		//JOptionPane.showMessageDialog(ventana,"¡¡LO SIENTO, HAS PERDIDO!!");
-		//ventana.dispose();
+
 	}
 	
 	//Método que indica el comienzo de la partida
@@ -415,7 +480,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		ventana_espera.setVisible(false);
 		ventana_espera = null;
 		
-		iniciar_juego();
+		iniciar_juego();	//Llama al método que se encarga de construir el tablero
 	}
 	
 	//Gestiona las pulsaciones sobre el mapa de la izquierda, es decir, el mapa del contrincante
@@ -427,25 +492,34 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	*/
 	class PulsaMapaPartida implements ActionListener{
         public void actionPerformed(ActionEvent e){
+			
+			//Obtenemos el botón que ha ocasiado la llamada de este método
             JButton boton_pulsado = (JButton)e.getSource();
 			
+			//Recorremos los botones, para localizarlo
 			for(int j=0; j<N_botones; j++){
 				if(mi_partida[j]==boton_pulsado){
 					//System.out.println("Boton presionado: " + j);
 					
 					try{
-						if(partida.getTurno(nombre_user)){
-							mi_partida[j].removeActionListener(pmp);
-							int tocado = partida.tiro(nombre_user,j);
-							if((tocado == 1) || (tocado == 4))
+						//Antes de iniciar ninguna gestión, comprobamos si el jugador que intenta realizar un tiro, es el que tiene el turno
+						if(partida.getTurno(nombre_user))
+						{
+							mi_partida[j].removeActionListener(pmp);	//Eliminamos la acción al botón
+							
+							int tocado = partida.tiro(nombre_user,j);	//Consultamos el resultado del tiro, a través del objeto partida
+							
+							
+							if((tocado == 1) || (tocado == 4))			//Si el resultado ha sido tocado(1) o fin de partida(4), solo cambiamos el icono	
 								mi_partida[j].setIcon(ic_tocado);
 							
-							else if(tocado == 2){
+							
+							else if(tocado == 2){						//Si el resultado es tocado y hundido(2), cambiamos el icono y mostramos mensaje 
 								mi_partida[j].setIcon(ic_tocado);
 								JOptionPane.showMessageDialog(ventana,"!Tocado y hundido!");
 							}
-							
-							else
+					
+							else										//En caso contrario, el resultado es agua (0)
 								mi_partida[j].setIcon(ic_agua);
 						
 							//Mostramos ventana de espera de turno, Si y solo Si no se ha acabado la partida
@@ -456,12 +530,13 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 							}
 							
 							else {
+								//Si el resultado es 4, mostramos mensaje de victoria, y cerramos la ventana
 								JOptionPane.showMessageDialog(ventana, "¡ENHORABUENA, HAS GANADO!");
 								ventana.dispose();
 							}
 						}
 						
-						else
+						else			//Si no es turno de este jugador, lo indicamos al jugador
 							JOptionPane.showMessageDialog(ventana,"Turno del contrincante");
 						
 					}
@@ -480,15 +555,17 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 	*/
 	class PulsaMiMapa implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            JButton boton_pulsado = (JButton)e.getSource();
-			int casilla=200;
-			boolean nueva_posicion=false;
+			
+            JButton boton_pulsado = (JButton)e.getSource();		//obtenemos el botón que ha llamado a este método
+			int casilla=200;									//Iniciamos una variable auxiliar
+			boolean nueva_posicion=false;						//Iniciamos un flag
 			
 			//En primer lugar, miramos qué boton se ha pulsado
 			for(int j=0; j<N_botones; j++){
 				if(mi_mapa[j]==boton_pulsado){
 					//System.out.println("Boton presionado en la CPU: " + j);
-					casilla = j;
+					casilla = j;							//Guardamos el numero de casilla
+					break;									//Salimos del bucle
 				}
 			}
 			
@@ -501,9 +578,9 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 					mi_mapa[salvavidas[0]].setIcon(null);
 				}
 
-				salvavidas[0] = casilla;		//Almacenamos la casilla asignada
-				boton_pulsado.setIcon(ic_extremo);		//La marcamos con el icono correspondiente
-				barcos_colocados[barco_seleccionado-1]=true; //Marcamos el salvavidas como colocado
+				salvavidas[0] = casilla;						//Almacenamos la casilla asignada
+				boton_pulsado.setIcon(ic_extremo);				//La marcamos con el icono correspondiente
+				barcos_colocados[barco_seleccionado-1]=true;	//Marcamos el salvavidas como colocado
 				//System.out.println("Salvavidas en " + salvavidas[0]);	
 			}
 			
@@ -520,7 +597,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 							}
 				}
 				
-				else if(buque[0] != 200)				//Si la primera casilla está asignada
+				else if(buque[0] != 200)		//Si la primera casilla está asignada
 				{
 					if(buque[1] != 200)			//Si la segunda casilla también está asignada
 					{
@@ -753,6 +830,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		ventana.dispose();
 	}
 	
+	//Devuelve un String con el nombre de usuario asignado a este jugador
 	public String getNombre() throws RemoteException{
 		return nombre_user;
 	}
@@ -768,17 +846,20 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 		- Se abre una ventana que indica que se ha de esperar a que el oponente coloque todos sus barcos
 	*/
 	private void Fija_mapa (java.awt.event.ActionEvent evt) {
-		if((barcos_colocados[0]==true) && (barcos_colocados[1]==true) && (barcos_colocados[2]==true) && (barcos_colocados[3]==true)) //Si todos los barcos están colocados	
+		//Si todos los barcos están colocados
+		if((barcos_colocados[0]==true) && (barcos_colocados[1]==true) && (barcos_colocados[2]==true) && (barcos_colocados[3]==true)) 	
 		{
-			for(int i=0;i<=N_botones-1;i++)	//Activamos todos las celdas del mapa de la partida, a la vez que desactivamos nuestro mapa
+			for(int i=0;i<=N_botones-1;i++)	//Desactivamos el mapa de la derecha
 			{
 				mi_mapa[i].removeActionListener(pmc);
 			}
 				
 				
 			try{
+				//Indicamos al objeto partida que hemos acabado de colocar los barcos, al igual que la posición de los mismos, para el log de la partida
 				partida.listo(nombre_user, salvavidas, buque, acorazado, portaviones);
 					
+				//Si el oponente aún no ha acabado, mostramos una ventana de espera
 				if(!contricante_listo){
 						
 					ventana_espera = new Frame("Esperando a contrincante");
@@ -795,6 +876,7 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 				}
 					
 				else{
+					//Si el oponente está listo, llamamos al método que activa el mapa de la izquierda
 					Mapa_enemigo();
 					//System.out.println("Contrincante listo");				
 				}
@@ -805,15 +887,20 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 				ventana.dispose();
 			};
 			
-		}			
+			//Ocultamos el botón de "Comenzar partida"
+			comenzar.setVisible(false);
+		}	
+
+		// Si todos los barcos no están colocados, indicamos al jugador de ello
 		else
 			JOptionPane.showMessageDialog(ventana,"¡TIENES QUE COLOCAR TODOS LOS BARCOS PARA COMENZAR!");
 				
-		comenzar.setVisible(false);
+		
 		
 	}
 	
 	//Método que gestiona la seleccion del barco a colocar, de la lista que aparece a la derecha de la pantalla
+	//	- Obtenemos el tipo seleccionado, y lo indicamos en una variable global
 	class Coloca_barcos implements ActionListener{
 		public void actionPerformed(ActionEvent e){
 			if(e.getSource() == c1)
