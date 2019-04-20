@@ -516,7 +516,30 @@ public class hundir_flota extends UnicastRemoteObject implements hundir_flota_in
 							
 							else if(tocado == 2){						//Si el resultado es tocado y hundido(2), cambiamos el icono y mostramos mensaje 
 								mi_partida[j].setIcon(ic_tocado);
-								JOptionPane.showMessageDialog(ventana,"!Tocado y hundido!");
+								
+								//Para avisar al jugador de que ha hundido un barco, creamos una pequeña ventana de aviso
+								// Usamos una vetana, y no un JOption para que siga funcionando con normalidad pese a no cerrar la ventana
+								JFrame ventanita = new JFrame("Tocado y hundido");
+								ventanita.addWindowListener(new WindowListener(){
+									public void windowOpened(WindowEvent e){}
+									public void windowActivated(WindowEvent e){}
+									public void windowDeactivated(WindowEvent e){}
+									public void windowIconified(WindowEvent e){}
+									public void windowDeiconified(WindowEvent e){}
+									public void windowClosed(WindowEvent e){}
+									public void windowClosing(WindowEvent e){
+										ventanita.dispose();
+									}
+								});
+								
+								JLabel mensaje = new JLabel("¡Barco hundido!");
+								mensaje.setBounds(10,20,20,20);
+								
+								ventanita.add(mensaje);
+								ventanita.setSize(300,150);
+								ventanita.setLocationRelativeTo(null);
+								ventanita.setVisible(true);
+								
 							}
 					
 							else										//En caso contrario, el resultado es agua (0)

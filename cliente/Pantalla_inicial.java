@@ -184,6 +184,7 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 	private void iniciar_partida(java.awt.event.ActionEvent evt) {	
 		try{
 				//Crea un objeto hundir_flota y le da de alta en el servidor
+				srv.hello();
 				user = new hundir_flota(nombre);
 				srv.alta(user);
 			}
@@ -192,6 +193,7 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 			{	
 				System.out.println(re.toString());
 				JOptionPane.showMessageDialog(this,"No se puede conectar con el servidor");
+				this.dispose();
 			}
     } 
 	
@@ -218,7 +220,7 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 				
 		catch (Exception ra){
 				System.out.println(ra.toString());
-				JOptionPane.showConfirmDialog(null, "No se puede mostrar la tabla en este momento");
+				JOptionPane.showMessageDialog(null, "No se puede mostrar la tabla en este momento");
 		}
 	}
 

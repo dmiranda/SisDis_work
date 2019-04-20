@@ -1,0 +1,45 @@
+Disposicion de los barcos del jugador David
+	Salvavidas 9
+	Buque 19,29
+	Acorazado 28,27,26
+	Portaviones 39,38,37,36,35
+Disposicion de los barcos del jugador Paco
+	Salvavidas 25
+	Buque 43,44
+	Acorazado 58,68,78
+	Portaviones 72,73,74,75,76
+> Paco lanza un disparo a casilla 9 -> Hundido
+> David lanza un disparo a casilla 9 -> Agua
+> Paco lanza un disparo a casilla 47 -> Agua
+> David lanza un disparo a casilla 25 -> Hundido
+> Paco lanza un disparo a casilla 57 -> Agua
+> David lanza un disparo a casilla 44 -> Tocado
+> Paco lanza un disparo a casilla 71 -> Agua
+> David lanza un disparo a casilla 43 -> Hundido
+> Paco lanza un disparo a casilla 85 -> Agua
+> David lanza un disparo a casilla 57 -> Agua
+> Paco lanza un disparo a casilla 65 -> Agua
+> David lanza un disparo a casilla 58 -> Tocado
+> Paco lanza un disparo a casilla 63 -> Agua
+> David lanza un disparo a casilla 68 -> Tocado
+> Paco lanza un disparo a casilla 37 -> Tocado
+> David lanza un disparo a casilla 78 -> Hundido
+> Paco lanza un disparo a casilla 11 -> Agua
+> David lanza un disparo a casilla 77 -> Agua
+> Paco lanza un disparo a casilla 75 -> Agua
+> David lanza un disparo a casilla 76 -> Tocado
+> Paco lanza un disparo a casilla 45 -> Agua
+> David lanza un disparo a casilla 75 -> Tocado
+> Paco lanza un disparo a casilla 15 -> Agua
+> David lanza un disparo a casilla 63 -> Agua
+> Paco lanza un disparo a casilla 74 -> Agua
+> David lanza un disparo a casilla 74 -> Tocado
+> Paco lanza un disparo a casilla 82 -> Agua
+> David lanza un disparo a casilla 33 -> Agua
+> Paco lanza un disparo a casilla 28 -> Tocado
+> David lanza un disparo a casilla 73 -> Tocado
+> Paco lanza un disparo a casilla 13 -> Agua
+> David lanza un disparo a casilla 72 -> Hundido
+El ganador ha sido el jugador David
+PARTIDA ABORTADA POR UNA MALA CONEXION
+PARTIDA ABORTADA POR UNA MALA CONEXION

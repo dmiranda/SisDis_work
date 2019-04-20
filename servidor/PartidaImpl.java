@@ -63,6 +63,13 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		catch(Exception ex){
 			System.out.println("No se puede conectar con el jugador");
 		}
+		
+		finally{
+			jugadores [0] = null;
+			jugadores [1] = null;
+			log_partida.println("PARTIDA ABORTADA POR UNA MALA CONEXION");
+			log_partida.flush();			
+		}
     }
 	
 	//Método que gestiona los tiros de un jugador:
