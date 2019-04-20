@@ -7,30 +7,38 @@ import java.rmi.server.*;
 
 public class Pantalla_inicial extends javax.swing.JFrame {
 
+	//Variables globales
 	ServicioJuego srv;
 	String servidor, puerto;
 	hundir_flota user;
 	String nombre;
 	
+	//Constructor de la inferfaz, recibe servidor y puerto
     public Pantalla_inicial(String server, String port) {
         
 		try{
+			//Guarda el servidor y puerto en las variables globales
 			servidor = server;
 			puerto = port;
 			
+			//Inicia las comunicaciones con servidor
 			srv = (ServicioJuego) Naming.lookup("//" + servidor + ":" + puerto + "/Juegos");
 			boolean ok = srv.hello();		//Este método sirve para salvaguardar el hecho de que el servidor no se encuentre disponible, saliendo de la aplicación sin seguir ejecutándose
 			boolean loging = false;
 			
+			//El cliente necesita estar logueado, este bucle no deja avanzar hasta que se loguee
 			while(!loging){
 				
+				//Pregunta si el jugador dispone de un nick ya resgistrado
 				int reply = JOptionPane.showConfirmDialog(null, "¿Posee usted un nick registrado?", "REGISTRO", JOptionPane.YES_NO_CANCEL_OPTION);
 				
-				if( reply == JOptionPane.YES_OPTION) {
+				//En caso de que si lo tenga, pide el nombre, y después la contraseña. Comprueba si son correctos en el servidor
+				if( reply == JOptionPane.YES_OPTION) 
+				{
 					
 					nombre = JOptionPane.showInputDialog(null,"Introduzca su usuario");
 					
-					if(nombre != null)
+					if(nombre != null)			
 					{
 					
 						JPasswordField pf = new JPasswordField();
@@ -44,8 +52,10 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 						}
 					}
 				}
-				else if(reply == JOptionPane.NO_OPTION){
 				
+				else if(reply == JOptionPane.NO_OPTION)		//Si el jugador no está registrado, debe crear una nueva cuenta
+				{
+					//Debe introducir un nombre, y una contraseña
 					nombre = JOptionPane.showInputDialog(null,"Introduzca un nombre de usuario");
 					
 					if(nombre != null)
@@ -56,9 +66,10 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 							int rep = JOptionPane.showConfirmDialog(null, pf, "Introduzca su Contraseña", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 							if(rep == JOptionPane.OK_OPTION)
 							{
+								//Como medida de seguridad, debe introducir la contraseña dos veces
 								String pass = new String (pf.getPassword());
 								JPasswordField pf_rep = new JPasswordField();
-								int rep1 = JOptionPane.showConfirmDialog(null, pf_rep, "Introduzca de nuevo su contraseña", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+								int rep1 = JOptionPane.showConfirmDialog(null, pf_rep, "Introduzcala de nuevo", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 								if(rep1 == JOptionPane.OK_OPTION)
 								{
 									if(pass.equals(new String (pf_rep.getPassword())))
@@ -82,6 +93,8 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 				else
 					System.exit(0);
 			}
+			
+			//Una vez logueado, se muestra la pantalla
 			initComponents(nombre);		
 
 		}
@@ -92,7 +105,7 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 		}		
     }
 	
-	
+	//Método que inicia la interfaz gráfica
     private void initComponents(String nombre) {
 
 
@@ -167,8 +180,11 @@ public class Pantalla_inicial extends javax.swing.JFrame {
         pack();
     }                       
 
+	//Método que gestiona la pulsacion de Nueva Partida
 	private void iniciar_partida(java.awt.event.ActionEvent evt) {	
 		try{
+				//Crea un objeto hundir_flota y le da de alta en el servidor
+				srv.hello();
 				user = new hundir_flota(nombre);
 				srv.alta(user);
 			}
@@ -177,12 +193,14 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 			{	
 				System.out.println(re.toString());
 				JOptionPane.showMessageDialog(this,"No se puede conectar con el servidor");
+				this.dispose();
 			}
     } 
 	
+	//Método que gestiona el botón de Salir
 	private void salir(java.awt.event.ActionEvent evt) {
 		try{
-			if (user != null) srv.baja(user);
+			if (user != null) srv.baja(user);		//Si existe un jugador creado, le da de baja en el servidor
 		}
 				
 		catch (Exception ra){
@@ -194,18 +212,19 @@ public class Pantalla_inicial extends javax.swing.JFrame {
 		}
 	}
 	
+	//Método que gestiona la pulsación del boton Palmares
 	private void mostrar_tabla (java.awt.event.ActionEvent evt) {
 		try{
-			new palmares(srv).setVisible(true);
+			new palmares(srv).setVisible(true);		//inicia un nuevo objeto palmares
 		}
 				
 		catch (Exception ra){
 				System.out.println(ra.toString());
-				JOptionPane.showConfirmDialog(null, "No se puede mostrar la tabla en este momento");
+				JOptionPane.showMessageDialog(null, "No se puede mostrar la tabla en este momento");
 		}
 	}
 
-	
+	//Funcion principal, que obtiene los argumentos por linea de comandos, y llama al constructor
     public static void main(String args[]) {
 		
 		if (args.length!=2) {

@@ -12,13 +12,16 @@ import java.sql.PreparedStatement;
 
 
 class PartidaImpl extends UnicastRemoteObject implements Partida {
+	
+	//Variables necesarias
     hundir_flota_interface jugadores[] = {null , null};
 	int jugador_turno = 0;
 	String ID_players [] = new String [2];
 	
+	//Para escribir el fichero del log, iniciamos un PrintWriter
 	PrintWriter log_partida;
 	
-	//Constructor, que recibe los dos jugadores
+	//Constructor, que recibe los dos jugadores, y el numero de partida, que servirá para crear el fichero del log
     public PartidaImpl(hundir_flota_interface p1, hundir_flota_interface p2,int num) throws RemoteException {
 		try{
 			//Configuramos el jugador 1
@@ -31,6 +34,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 			ID_players[1] = p2.getNombre();			
 			jugadores[1].empieza_partida();
 
+			//Abrimos el fichero donde escribir
 			log_partida = new PrintWriter(new FileWriter("partida"+num));
 		}
 		catch(RemoteException re){
@@ -50,6 +54,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 	//Método encargado de eliminar la partida, pues un jugador decide salir de ella
 	public void salida(String user) throws RemoteException{
 		try{
+			//Comprobamos cuál de los dos jugadores es, y avisamos a su oponente de esta acción, enviando un false a su método "fin_partida"
 			if(ID_players[0].equals(user))
 				jugadores[1].fin_partida(false);
 			else
@@ -57,6 +62,13 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		}
 		catch(Exception ex){
 			System.out.println("No se puede conectar con el jugador");
+		}
+		
+		finally{
+			jugadores [0] = null;
+			jugadores [1] = null;
+			log_partida.println("PARTIDA ABORTADA POR UNA MALA CONEXION");
+			log_partida.flush();			
 		}
     }
 	
@@ -68,38 +80,41 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		- Lo manda de vuelta al jugador que ha relizado el tiro
 	*/
 	public int	tiro(String user, int casilla) throws RemoteException{
+		
+		//Variables necesarias
 		String result;
 		int jugador_oponente;
 		
-		//Configuramos el jugador oponente
+		//Configuramos el jugador al que consultar el resultado del tiro
 		if(jugador_turno == 1) jugador_oponente = 0;
 		else jugador_oponente = 1;
 		
+		//Si efectivamente, el jugador que efectúa el tiro, es el que tiene el turno
 		if(user.equals(ID_players[jugador_turno])){
 			try{
-				int resultado = jugadores[jugador_oponente].tiro(casilla);
-				if(resultado == 0)
-					//ESCRIBIR AGUA
+				int resultado = jugadores[jugador_oponente].tiro(casilla);		//Comprobamos el resultado del tiro
+				
+				//Creamos un string para escribir en el log, en funcion del valor devuelto por el jugador oponente
+				if(resultado == 0)	
 					result = new String("Agua");
 				else if(resultado == 1)
-					//ESCRIBIR TOCADO
 					result = new String("Tocado");
 				else
-					//ESCRIBIR HUNDIDO
 					result = new String("Hundido");
 				
+				//Escribimos en el log, la acción y el resultado
 				log_partida.println("> " + user + " lanza un disparo a casilla " + casilla + " -> " + result);
 				log_partida.flush();
 				
-				if(resultado == 4)
+				if(resultado == 4)								//Si el resultado ha sido fin de partida (4), efectuamos el procedimiento antes de salir
 					fin_partida(jugador_oponente);
 				
-				else{
-					//Indicamos que ahora el turno es del otro jugador
+				else											//Permutamos el turno del jugador
+				{
 					if(jugador_turno == 1) jugador_turno = 0;
 					else jugador_turno = 1;
 				
-					jugadores[jugador_turno].Turno();
+					jugadores[jugador_turno].Turno();			//Avisamos al jugador que tiene el turno, de este hecho
 				}
 				
 				
@@ -121,6 +136,7 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 	public void listo(String user, int b1[], int b2[], int b3[], int b4[]) throws RemoteException{
 		int jug;
 		
+		//En cada caso, avisamos al jugador oponente de que su contricante está listo
 		if(user.equals(ID_players[0]))
 		{
 			jugadores[1].listo();
@@ -156,49 +172,55 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 	}
 	
 	//Método que gestiona el fin de partida
-	/*	- Recibe el ID del jugador ganador
+	/*	- Recibe el ID del jugador perdedor
 		- Llama al método en el oponente que le indica que ha ganado
 		- Almacena la información en el log y en la base de datos
 	*/
-	public void fin_partida(int id) throws RemoteException {
+	public void fin_partida(int id) {
 		String ganador = "NONE";
 		String perdedor = "NONE";
 		
-		jugadores[id].fin_partida(true);
 		
+		//Guardamos el nombre del user ganador en el string auxiliar
 		if(id == 0) ganador = ID_players[1];
 		else ganador = ID_players[0];
 		
+		//Guardamos en el String el nombre del perdedor
 		perdedor = ID_players[id];
 		
-	
+		//Escribimos en el log, el resultado de la partida
 		log_partida.println("El ganador ha sido el jugador " + ganador);
 		log_partida.flush();
 		
 		//Guardamos el resultado en la base de datos
 		try {
 			
+			jugadores[id].fin_partida(true);			//Se avisa al perdedor, de que ha finalizado la partida
+														//En este codigo, el propio cliente emite un mensaje por pantalla en caso de haber resultado ganador
+			
+			/**************BASE DE DATOS**********************/
 			Class.forName("org.postgresql.Driver");
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/","salas","salas");
 			Statement stmt = con.createStatement();
-			
-			//Actualiza ganador
+			/*************************************************/
+				
+			//Obtiene el palmarés del jugador ganador
 			ResultSet rs_gan = stmt.executeQuery("SELECT partidas,ganadas FROM tabla_partidas WHERE apodo=\'" + ganador + "\'");
 			
+			//Si existe en la base de datos
 			if(rs_gan.next()){
-				int [] partidas_gan = {rs_gan.getInt(1) + 1, rs_gan.getInt(2) + 1};
-
+				int [] partidas_gan = {rs_gan.getInt(1) + 1, rs_gan.getInt(2) + 1};	//Actualizamos el palmarés
 				
-								
-				stmt.executeUpdate("UPDATE tabla_partidas SET " + "partidas = " + partidas_gan[0] + ", ganadas = " + partidas_gan[1] + " WHERE apodo = \'" + ganador + "\'" );
+				stmt.executeUpdate("UPDATE tabla_partidas SET " + "partidas = " + partidas_gan[0] + ", ganadas = " + partidas_gan[1] + " WHERE apodo = \'" + ganador + "\'" );	//Actualizamos en la base de datos
 			}
 			
-			else
+			else				//Si no hay entradas para este jugador, insertamos una fila nueva
 				stmt.executeUpdate("INSERT INTO tabla_partidas VALUES (\'" + ganador + "\'," + 1 + "," + 1 + ")");
 			
-			//Actualiza perdedor
+			//Hacemos lo mismo con el jugador perdedor
 			ResultSet rs_perd = stmt.executeQuery("SELECT partidas FROM tabla_partidas WHERE apodo=\'" + perdedor + "\'");
 			
+			//Si hay entradas, actualizamos su numero de partidas jugadas, si no, insertamos la fila nueva
 			if(rs_perd.next()){
 				int partidas_perd = rs_perd.getInt(1) + 1;
 					

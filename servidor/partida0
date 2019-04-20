@@ -1,0 +1,18 @@
+Disposicion de los barcos del jugador Paco
+	Salvavidas 9
+	Buque 8,7
+	Acorazado 19,18,17
+	Portaviones 29,28,27,26,25
+Disposicion de los barcos del jugador David
+	Salvavidas 9
+	Buque 19,18
+	Acorazado 28,27,26
+	Portaviones 39,38,37,36,35
+> David lanza un disparo a casilla 9 -> Hundido
+> Paco lanza un disparo a casilla 54 -> Agua
+> David lanza un disparo a casilla 54 -> Agua
+> Paco lanza un disparo a casilla 39 -> Tocado
+> David lanza un disparo a casilla 26 -> Tocado
+> Paco lanza un disparo a casilla 57 -> Agua
+PARTIDA ABORTADA POR UNA MALA CONEXION
+PARTIDA ABORTADA POR UNA MALA CONEXION
