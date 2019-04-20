@@ -173,8 +173,6 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		String ganador = "NONE";
 		String perdedor = "NONE";
 		
-		jugadores[id].fin_partida(true);				//Se avisa al perdedor, de que ha finalizado la partida
-														//En este codigo, el propio cliente emite un mensaje por pantalla en caso de haber resultado ganador
 		
 		//Guardamos el nombre del user ganador en el string auxiliar
 		if(id == 0) ganador = ID_players[1];
@@ -189,6 +187,9 @@ class PartidaImpl extends UnicastRemoteObject implements Partida {
 		
 		//Guardamos el resultado en la base de datos
 		try {
+			
+			jugadores[id].fin_partida(true);			//Se avisa al perdedor, de que ha finalizado la partida
+														//En este codigo, el propio cliente emite un mensaje por pantalla en caso de haber resultado ganador
 			
 			/**************BASE DE DATOS**********************/
 			Class.forName("org.postgresql.Driver");
